@@ -63,3 +63,46 @@ def create_article():
 def article_detail(article_id):
     article = Article.query.get_or_404(article_id)
     return render_template('article_detail.html', article=article)
+
+
+# Edit existing article
+@app.route('/edit/<int:article_id>', methods=['GET', 'POST'])
+def article_edit(article_id):
+    article = Article.query.get_or_404(article_id)
+    form = ArticleForm(obj=article)  # Prefill form with existing article
+
+    # Prefill tags as comma-separated string
+    if request.method == 'GET':
+        form.tags.data = ', '.join([tag.name for tag in article.tags])
+
+    if form.validate_on_submit():
+        article.title = form.title.data
+        article.description = form.description.data
+        article.content = form.content.data
+        article.category = form.category.data
+
+        # Update tags
+        tag_names = [t.strip() for t in form.tags.data.split(',') if t.strip()]
+        new_tags = []
+        for name in tag_names:
+            tag = Tag.query.filter_by(name=name).first()
+            if not tag:
+                tag = Tag(name=name)
+                db.session.add(tag)
+            new_tags.append(tag)
+        article.tags = new_tags
+
+        db.session.commit()
+        flash('Article updated successfully!', 'success')
+        return redirect(url_for('article_detail', article_id=article.id))
+
+    return render_template('article_edit.html', form=form, article=article)
+
+# Delete an article
+@app.route('/delete/<int:article_id>', methods=['POST'])
+def article_delete(article_id):
+    article = Article.query.get_or_404(article_id)
+    db.session.delete(article)
+    db.session.commit()
+    flash('Article deleted successfully!', 'danger')
+    return redirect(url_for('index'))
