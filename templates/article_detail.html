@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ article.title }}</h1>
+<p><strong>Category:</strong> {{ article.category }}</p>
+<p>
+  <strong>Tags:</strong>
+  {% for tag in article.tags %}
+    <span class="badge bg-secondary">{{ tag.name }}</span>
+  {% endfor %}
+</p>
+<hr>
+<div>
+    {{ article.content|safe }}
+</div>
+<a href="{{ url_for('index') }}" class="btn btn-primary mt-3">Back to Articles</a>
+{% endblock %}
